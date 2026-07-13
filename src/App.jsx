@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 
 // ---- Embedded plan: 382 NYSE trading days, $65 -> $1.02M (seed 9001 run) ----
 const PLAN_VALS = [65.0, 67.46, 67.93, 69.24, 74.22, 82.4, 91.37, 90.5, 75.47, 76.15, 82.39, 83.48, 100.37, 98.1, 106.84, 107.08, 111.04, 116.69, 129.44, 128.52, 133.98, 145.26, 148.12, 155.33, 163.96, 176.6, 172.63, 173.42, 173.05, 176.97, 166.02, 178.16, 166.81, 164.36, 159.85, 171.1, 182.28, 179.26, 201.07, 209.09, 226.17, 237.81, 257.36, 263.68, 242.47, 242.6, 236.22, 222.52, 237.86, 222.71, 243.15, 252.25, 266.61, 275.97, 285.01, 303.0, 297.11, 309.8, 288.64, 315.82, 332.58, 368.46, 401.5, 413.38, 401.4, 422.78, 472.45, 536.47, 563.47, 653.56, 621.34, 687.51, 797.66, 800.28, 867.12, 868.94, 944.41, 973.49, 976.23, 1009.84, 1002.93, 930.86, 959.19, 941.18, 971.5, 1036.83, 1133.8, 1211.03, 1158.31, 1180.66, 1167.41, 1285.14, 1302.83, 1308.33, 1198.82, 1242.68, 1091.99, 1163.09, 1166.69, 1113.17, 1129.57, 1096.28, 1154.79, 1211.67, 1257.56, 1321.61, 1353.92, 1371.93, 1435.21, 1541.68, 1600.14, 1580.02, 1671.64, 1835.98, 1999.21, 2104.91, 2280.4, 2358.87, 2546.6, 2461.26, 2626.88, 2749.18, 2993.47, 2781.62, 2947.37, 3101.92, 3361.45, 3280.65, 3658.86, 3428.8, 3505.63, 3575.17, 3329.45, 3415.39, 3578.69, 4296.6, 4309.31, 4426.86, 4315.84, 4702.07, 4306.03, 4751.12, 5477.75, 6082.78, 6531.25, 5654.08, 5526.9, 5173.67, 4708.11, 4471.35, 3851.45, 3852.77, 3536.75, 3798.77, 3519.45, 3591.38, 3547.15, 3358.12, 3681.39, 3686.31, 3517.3, 3252.98, 3319.55, 3338.36, 3450.27, 3404.59, 3210.75, 3547.49, 3599.6, 3774.69, 3199.66, 3108.57, 3162.41, 3586.11, 3647.38, 3360.1, 3596.73, 3654.74, 4021.26, 3848.21, 3721.01, 3813.14, 3343.05, 3604.57, 4073.39, 3837.83, 3806.51, 4418.66, 5142.49, 4592.4, 4707.79, 4491.75, 4895.52, 4925.45, 5285.82, 5919.23, 6148.08, 5981.24, 6093.51, 6329.16, 6744.35, 6275.03, 6278.65, 6518.09, 6915.22, 6825.61, 7073.01, 6216.61, 6685.31, 6580.84, 6313.92, 6985.39, 6488.27, 6118.81, 6132.75, 6015.61, 5905.26, 6043.48, 6123.66, 6038.89, 6010.7, 6031.58, 5991.93, 6433.92, 5873.72, 6524.87, 6122.48, 6051.3, 6721.29, 7177.34, 8172.72, 8576.2, 7970.03, 8403.18, 9083.94, 8673.29, 9562.92, 9709.47, 10387.87, 9932.66, 10404.35, 10096.65, 10675.97, 10291.6, 10689.15, 11956.14, 13777.56, 13795.97, 14086.13, 15653.0, 15491.85, 16020.1, 16826.57, 16534.74, 15784.34, 15307.63, 14988.13, 15034.14, 16065.82, 17054.3, 16562.04, 16144.8, 18168.74, 19065.96, 20899.95, 20504.66, 20840.04, 21759.17, 22902.53, 23614.3, 28198.6, 29429.62, 28633.85, 30098.46, 34789.97, 33870.24, 35341.11, 35811.87, 34416.99, 36966.22, 39379.22, 41547.54, 47825.5, 50818.25, 52284.63, 53375.61, 58169.98, 57850.44, 58992.91, 59811.38, 55743.53, 57768.24, 60880.82, 59220.12, 58143.4, 55670.34, 60254.28, 59735.78, 60491.05, 66031.36, 65059.77, 68105.88, 73610.82, 75197.68, 91622.96, 91552.92, 89847.35, 94103.12, 96437.74, 101533.12, 108242.95, 103853.55, 116018.14, 116078.84, 132786.22, 141137.16, 155561.71, 161487.04, 154475.36, 180430.73, 183021.83, 205667.09, 203438.4, 183527.72, 200582.02, 204628.39, 212582.24, 211830.3, 214899.69, 196832.82, 212124.82, 241365.14, 241538.08, 255302.23, 280575.14, 295899.35, 306899.62, 308567.39, 288602.28, 290515.47, 300108.56, 321631.44, 323001.25, 357190.37, 367180.75, 341540.34, 359099.83, 396734.12, 386779.5, 391990.3, 397559.14, 375924.83, 382472.04, 412504.25, 445612.43, 440287.73, 466289.71, 482591.12, 489014.91, 506647.58, 524215.45, 476156.09, 505019.96, 488657.27, 524191.28, 524854.7, 503650.98, 521907.29, 494594.84, 545652.95, 644085.03, 711334.92, 714806.31, 699452.0, 722188.88, 802993.58, 903468.85, 918163.08, 978552.57, 1003148.27, 1102970.68, 1022442.74];
@@ -149,6 +148,7 @@ function Tracker({ username, onLogout }) {
   const [dateInput, setDateInput] = useState("");
   const [balanceInput, setBalanceInput] = useState("");
   const [saveMsg, setSaveMsg] = useState("");
+  const roadmapScrollRef = useRef(null);
 
   // ---- load persisted state ----
   useEffect(() => {
@@ -212,16 +212,6 @@ function Tracker({ username, onLogout }) {
   const breaches = rows.filter((r) => r.breach).length;
   const winDays = rows.filter((r) => r.ret != null && r.ret > 0).length;
   const retDays = rows.filter((r) => r.ret != null).length;
-
-  // ---- chart data: full plan + actuals overlaid (the original, untouched plan) ----
-  const chartData = useMemo(() => {
-    return PLAN_DATES.map((d, i) => ({
-      date: d,
-      label: d.slice(2, 7),
-      plan: PLAN_VALS[i],
-      actual: entries[d] ?? null,
-    }));
-  }, [entries]);
 
   // ---- adjusted roadmap: re-projected from today's actual pace, capped at MAX_DATE ----
   const maxIdx = useMemo(() => {
@@ -289,6 +279,24 @@ function Tracker({ username, onLogout }) {
 
     return { points, completionDate: PLAN_DATES[completionIdx], capped };
   }, [entries, logged, lastEntry, maxIdx]);
+
+  // ---- roadmap table: initial plan vs adjusted plan vs actual, one row per day ----
+  const roadmapRows = useMemo(() => {
+    return adjusted.points.map((p, i) => ({
+      day: i + 1,
+      date: p.date,
+      initial: PLAN_VALS[i],
+      adjustedVal: p.plan,
+      actual: p.actual,
+      vsPlan: p.actual != null ? p.actual / PLAN_VALS[i] - 1 : null,
+    }));
+  }, [adjusted]);
+
+  useEffect(() => {
+    if (!loaded || !lastEntry || !roadmapScrollRef.current) return;
+    const row = document.getElementById("roadmap-" + lastEntry.date);
+    row?.scrollIntoView({ block: "center" });
+  }, [loaded, lastEntry]);
 
   // ---- actions ----
   const saveEntry = () => {
@@ -491,58 +499,58 @@ function Tracker({ username, onLogout }) {
           />
         </div>
 
-        {/* chart 1: the original, untouched plan */}
-        <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-          <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono mb-3">
-            Initial plan — Plan (amber) vs your actuals (green)
+        {/* roadmap table: initial plan vs adjusted plan vs actual */}
+        <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-800">
+            <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono">Roadmap — initial vs adjusted</div>
+            <div className="mt-1 text-xs text-slate-500">
+              {adjusted.completionDate == null
+                ? "Log a balance to generate your adjusted roadmap."
+                : adjusted.capped
+                ? "Current pace is behind the original plan — the remaining days are compressed so you still hit $1M by " + adjusted.completionDate + "."
+                : adjusted.completionDate < MAX_DATE
+                ? "Ahead of pace — on track to hit $1M by " + adjusted.completionDate + ", sooner than the max threshold of Jan 13, 2028."
+                : "On track to hit $1M by " + adjusted.completionDate + "."}
+            </div>
           </div>
-          <div style={{ width: "100%", height: 300 }}>
-            <ResponsiveContainer>
-              <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
-                <XAxis dataKey="label" tick={{ fill: "#64748b", fontSize: 11 }} interval={Math.floor(N / 8)} tickLine={false} axisLine={{ stroke: "#1e293b" }} />
-                <YAxis tickFormatter={fmt} tick={{ fill: "#64748b", fontSize: 11 }} width={64} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, fontFamily: "monospace", fontSize: 12 }}
-                  labelFormatter={(l, p) => (p && p[0] ? p[0].payload.date : l)}
-                  formatter={(v, name) => [fmtFull(v), name === "plan" ? "Plan" : "Actual"]}
-                />
-                <Line type="monotone" dataKey="plan" stroke="#F5B841" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
-                <Line type="monotone" dataKey="actual" stroke="#2BB673" strokeWidth={2.5} dot={false} connectNulls />
-                {lastEntry && <ReferenceLine x={lastEntry.date.slice(2, 7)} stroke="#334155" />}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* chart 2: re-projected from today's pace, capped at MAX_DATE */}
-        <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-          <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono mb-3">
-            Adjusted roadmap — Adjusted plan (violet) vs your actuals (green)
-          </div>
-          <div style={{ width: "100%", height: 300 }}>
-            <ResponsiveContainer>
-              <LineChart data={adjusted.points} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
-                <XAxis dataKey="label" tick={{ fill: "#64748b", fontSize: 11 }} interval={Math.floor(adjusted.points.length / 8)} tickLine={false} axisLine={{ stroke: "#1e293b" }} />
-                <YAxis tickFormatter={fmt} tick={{ fill: "#64748b", fontSize: 11 }} width={64} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, fontFamily: "monospace", fontSize: 12 }}
-                  labelFormatter={(l, p) => (p && p[0] ? p[0].payload.date : l)}
-                  formatter={(v, name) => [fmtFull(v), name === "plan" ? "Adjusted" : "Actual"]}
-                />
-                <Line type="monotone" dataKey="plan" stroke="#9085E9" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
-                <Line type="monotone" dataKey="actual" stroke="#2BB673" strokeWidth={2.5} dot={false} connectNulls />
-                {lastEntry && <ReferenceLine x={lastEntry.date.slice(2, 7)} stroke="#334155" />}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-3 text-xs text-slate-500">
-            {adjusted.completionDate == null
-              ? "Log a balance to generate your adjusted roadmap."
-              : adjusted.capped
-              ? "Current pace is behind the original plan — the remaining days are compressed so you still hit $1M by " + adjusted.completionDate + "."
-              : adjusted.completionDate < MAX_DATE
-              ? "Ahead of pace — on track to hit $1M by " + adjusted.completionDate + ", sooner than the max threshold of Jan 13, 2028."
-              : "On track to hit $1M by " + adjusted.completionDate + "."}
+          <div ref={roadmapScrollRef} className="max-h-[32rem] overflow-y-auto">
+            <table className="w-full font-mono text-xs">
+              <thead className="sticky top-0 bg-slate-900 text-slate-500">
+                <tr className="text-left">
+                  <th className="px-4 py-2 font-normal">Day</th>
+                  <th className="px-2 py-2 font-normal">Date</th>
+                  <th className="px-2 py-2 font-normal text-right">Initial plan</th>
+                  <th className="px-2 py-2 font-normal text-right">Adjusted plan</th>
+                  <th className="px-2 py-2 font-normal text-right">Actual</th>
+                  <th className="px-4 py-2 font-normal text-right">vs plan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roadmapRows.map((r) => (
+                  <tr
+                    key={r.date}
+                    id={"roadmap-" + r.date}
+                    className={
+                      "border-t border-slate-800/60 " +
+                      (lastEntry && r.date === lastEntry.date
+                        ? "bg-amber-400/10"
+                        : r.actual != null
+                        ? "bg-slate-800/30"
+                        : "")
+                    }
+                  >
+                    <td className="px-4 py-1.5 text-slate-500">{r.day}</td>
+                    <td className="px-2 py-1.5 text-slate-300">{r.date}</td>
+                    <td className="px-2 py-1.5 text-right text-amber-300/90">{fmtFull(r.initial)}</td>
+                    <td className="px-2 py-1.5 text-right" style={{ color: "#9085E9" }}>{fmtFull(r.adjustedVal)}</td>
+                    <td className="px-2 py-1.5 text-right text-emerald-400">{fmtFull(r.actual)}</td>
+                    <td className={"px-4 py-1.5 text-right " + (r.vsPlan == null ? "text-slate-500" : r.vsPlan >= 0 ? "text-emerald-400" : "text-red-400")}>
+                      {pct(r.vsPlan, 1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 

@@ -6,13 +6,143 @@ const PLAN_VALS = [65.0, 67.46, 67.93, 69.24, 74.22, 82.4, 91.37, 90.5, 75.47, 7
 const PLAN_DATES = ["2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-27", "2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11", "2026-12-14", "2026-12-15", "2026-12-16", "2026-12-17", "2026-12-18", "2026-12-21", "2026-12-22", "2026-12-23", "2026-12-24", "2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31", "2027-01-04", "2027-01-05", "2027-01-06", "2027-01-07", "2027-01-08", "2027-01-11", "2027-01-12", "2027-01-13", "2027-01-14", "2027-01-15", "2027-01-19", "2027-01-20", "2027-01-21", "2027-01-22", "2027-01-25", "2027-01-26", "2027-01-27", "2027-01-28", "2027-01-29", "2027-02-01", "2027-02-02", "2027-02-03", "2027-02-04", "2027-02-05", "2027-02-08", "2027-02-09", "2027-02-10", "2027-02-11", "2027-02-12", "2027-02-16", "2027-02-17", "2027-02-18", "2027-02-19", "2027-02-22", "2027-02-23", "2027-02-24", "2027-02-25", "2027-02-26", "2027-03-01", "2027-03-02", "2027-03-03", "2027-03-04", "2027-03-05", "2027-03-08", "2027-03-09", "2027-03-10", "2027-03-11", "2027-03-12", "2027-03-15", "2027-03-16", "2027-03-17", "2027-03-18", "2027-03-19", "2027-03-22", "2027-03-23", "2027-03-24", "2027-03-25", "2027-03-29", "2027-03-30", "2027-03-31", "2027-04-01", "2027-04-02", "2027-04-05", "2027-04-06", "2027-04-07", "2027-04-08", "2027-04-09", "2027-04-12", "2027-04-13", "2027-04-14", "2027-04-15", "2027-04-16", "2027-04-19", "2027-04-20", "2027-04-21", "2027-04-22", "2027-04-23", "2027-04-26", "2027-04-27", "2027-04-28", "2027-04-29", "2027-04-30", "2027-05-03", "2027-05-04", "2027-05-05", "2027-05-06", "2027-05-07", "2027-05-10", "2027-05-11", "2027-05-12", "2027-05-13", "2027-05-14", "2027-05-17", "2027-05-18", "2027-05-19", "2027-05-20", "2027-05-21", "2027-05-24", "2027-05-25", "2027-05-26", "2027-05-27", "2027-05-28", "2027-06-01", "2027-06-02", "2027-06-03", "2027-06-04", "2027-06-07", "2027-06-08", "2027-06-09", "2027-06-10", "2027-06-11", "2027-06-14", "2027-06-15", "2027-06-16", "2027-06-17", "2027-06-21", "2027-06-22", "2027-06-23", "2027-06-24", "2027-06-25", "2027-06-28", "2027-06-29", "2027-06-30", "2027-07-01", "2027-07-02", "2027-07-06", "2027-07-07", "2027-07-08", "2027-07-09", "2027-07-12", "2027-07-13", "2027-07-14", "2027-07-15", "2027-07-16", "2027-07-19", "2027-07-20", "2027-07-21", "2027-07-22", "2027-07-23", "2027-07-26", "2027-07-27", "2027-07-28", "2027-07-29", "2027-07-30", "2027-08-02", "2027-08-03", "2027-08-04", "2027-08-05", "2027-08-06", "2027-08-09", "2027-08-10", "2027-08-11", "2027-08-12", "2027-08-13", "2027-08-16", "2027-08-17", "2027-08-18", "2027-08-19", "2027-08-20", "2027-08-23", "2027-08-24", "2027-08-25", "2027-08-26", "2027-08-27", "2027-08-30", "2027-08-31", "2027-09-01", "2027-09-02", "2027-09-03", "2027-09-07", "2027-09-08", "2027-09-09", "2027-09-10", "2027-09-13", "2027-09-14", "2027-09-15", "2027-09-16", "2027-09-17", "2027-09-20", "2027-09-21", "2027-09-22", "2027-09-23", "2027-09-24", "2027-09-27", "2027-09-28", "2027-09-29", "2027-09-30", "2027-10-01", "2027-10-04", "2027-10-05", "2027-10-06", "2027-10-07", "2027-10-08", "2027-10-11", "2027-10-12", "2027-10-13", "2027-10-14", "2027-10-15", "2027-10-18", "2027-10-19", "2027-10-20", "2027-10-21", "2027-10-22", "2027-10-25", "2027-10-26", "2027-10-27", "2027-10-28", "2027-10-29", "2027-11-01", "2027-11-02", "2027-11-03", "2027-11-04", "2027-11-05", "2027-11-08", "2027-11-09", "2027-11-10", "2027-11-11", "2027-11-12", "2027-11-15", "2027-11-16", "2027-11-17", "2027-11-18", "2027-11-19", "2027-11-22", "2027-11-23", "2027-11-24", "2027-11-26", "2027-11-29", "2027-11-30", "2027-12-01", "2027-12-02", "2027-12-03", "2027-12-06", "2027-12-07", "2027-12-08", "2027-12-09", "2027-12-10", "2027-12-13", "2027-12-14", "2027-12-15", "2027-12-16", "2027-12-17", "2027-12-20", "2027-12-21", "2027-12-22", "2027-12-23", "2027-12-27", "2027-12-28", "2027-12-29", "2027-12-30", "2027-12-31", "2028-01-03", "2028-01-04", "2028-01-05", "2028-01-06", "2028-01-07", "2028-01-10", "2028-01-11", "2028-01-12", "2028-01-13", "2028-01-14"];
 const N = PLAN_DATES.length;
 
-const STORE_KEY = "bull-tracker-v1";
+const MAX_DATE = "2028-01-13"; // roadmap re-projections never extend past this trading day
+const TARGET = 1_000_000;
+const ACCOUNTS_KEY = "bull-tracker-accounts-v1";
+const SESSION_KEY = "bull-tracker-session-v1";
+
 const fmt = (v) =>
   v == null ? "—" : v >= 1e6 ? "$" + (v / 1e6).toFixed(2) + "M" : "$" + Math.round(v).toLocaleString();
 const fmtFull = (v) => (v == null ? "—" : "$" + Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
 const pct = (v, d = 2) => (v == null ? "—" : (v >= 0 ? "+" : "") + (v * 100).toFixed(d) + "%");
 
-export default function BullRunTracker() {
+// Lightweight string hash for the local login gate — this app has no backend, so
+// it's just enough to keep separate savers' data apart on a shared browser, not real auth.
+const hashPW = (pw) => {
+  let h = 0;
+  for (let i = 0; i < pw.length; i++) h = (Math.imul(h, 31) + pw.charCodeAt(i)) | 0;
+  return h.toString(36);
+};
+
+function AuthGate() {
+  const [accounts, setAccounts] = useState({});
+  const [sessionUser, setSessionUser] = useState(null);
+  const [mode, setMode] = useState("login");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const rawAccounts = localStorage.getItem(ACCOUNTS_KEY);
+      setAccounts(rawAccounts ? JSON.parse(rawAccounts) : {});
+      const session = localStorage.getItem(SESSION_KEY);
+      if (session) setSessionUser(session);
+    } catch (e) {
+      /* no saved accounts yet */
+    }
+    setReady(true);
+  }, []);
+
+  const submit = () => {
+    const u = username.trim();
+    if (!u || !password) {
+      setError("Enter a username and password.");
+      return;
+    }
+    if (mode === "signup") {
+      if (accounts[u]) {
+        setError("That username is already taken.");
+        return;
+      }
+      const next = { ...accounts, [u]: hashPW(password) };
+      setAccounts(next);
+      try {
+        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(next));
+      } catch (e) {}
+    } else if (!accounts[u] || accounts[u] !== hashPW(password)) {
+      setError("Wrong username or password.");
+      return;
+    }
+    setSessionUser(u);
+    try {
+      localStorage.setItem(SESSION_KEY, u);
+    } catch (e) {}
+    setPassword("");
+    setError("");
+  };
+
+  const logout = () => {
+    setSessionUser(null);
+    setMode("login");
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch (e) {}
+  };
+
+  if (!ready)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400 font-mono text-sm">
+        loading…
+      </div>
+    );
+
+  if (sessionUser) return <Tracker username={sessionUser} onLogout={logout} />;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center text-slate-200" style={{ background: "#0C1524" }}>
+      <div className="w-full max-w-sm rounded-lg border border-slate-800 bg-slate-900/60 p-6">
+        <div className="text-[11px] tracking-[0.25em] uppercase text-amber-400/80 font-mono mb-1">Risk ledger</div>
+        <h1 className="text-xl font-semibold text-slate-50 mb-4">
+          {mode === "login" ? "Log in" : "Create account"}
+        </h1>
+        <div className="flex flex-col gap-2">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            className="bg-slate-950 border border-slate-700 rounded px-3 py-2 font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+            aria-label="Username"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            className="bg-slate-950 border border-slate-700 rounded px-3 py-2 font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+            aria-label="Password"
+          />
+          <button
+            onClick={submit}
+            className="mt-1 px-4 py-2 rounded bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            {mode === "login" ? "Log in" : "Create account"}
+          </button>
+          {error && <div className="text-xs font-mono text-red-400">{error}</div>}
+        </div>
+        <button
+          onClick={() => {
+            setMode(mode === "login" ? "signup" : "login");
+            setError("");
+          }}
+          className="mt-4 text-xs font-mono text-slate-400 hover:text-amber-300"
+        >
+          {mode === "login" ? "New here? Create an account" : "Have an account? Log in"}
+        </button>
+        <div className="mt-4 text-[11px] text-slate-600">
+          Stored only in this browser — this is a savers' gate, not secure authentication.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Tracker({ username, onLogout }) {
+  const STORE_KEY = "bull-tracker-v1:" + username;
   const [entries, setEntries] = useState({}); // { "2026-07-13": 65.0, ... }
   const [maxLossPct, setMaxLossPct] = useState(5);
   const [loaded, setLoaded] = useState(false);
@@ -33,7 +163,7 @@ export default function BullRunTracker() {
       /* no saved data yet */
     }
     setLoaded(true);
-  }, []);
+  }, [STORE_KEY]);
 
   const persist = (nextEntries, nextPct) => {
     try {
@@ -83,7 +213,7 @@ export default function BullRunTracker() {
   const winDays = rows.filter((r) => r.ret != null && r.ret > 0).length;
   const retDays = rows.filter((r) => r.ret != null).length;
 
-  // ---- chart data: full plan + actuals overlaid ----
+  // ---- chart data: full plan + actuals overlaid (the original, untouched plan) ----
   const chartData = useMemo(() => {
     return PLAN_DATES.map((d, i) => ({
       date: d,
@@ -92,6 +222,73 @@ export default function BullRunTracker() {
       actual: entries[d] ?? null,
     }));
   }, [entries]);
+
+  // ---- adjusted roadmap: re-projected from today's actual pace, capped at MAX_DATE ----
+  const maxIdx = useMemo(() => {
+    const idx = PLAN_DATES.indexOf(MAX_DATE);
+    return idx === -1 ? N - 1 : idx;
+  }, []);
+
+  const adjusted = useMemo(() => {
+    if (!logged.length) {
+      return {
+        points: PLAN_DATES.slice(0, maxIdx + 1).map((d, i) => ({
+          date: d,
+          label: d.slice(2, 7),
+          plan: PLAN_VALS[i],
+          actual: entries[d] ?? null,
+        })),
+        completionDate: null,
+        capped: false,
+      };
+    }
+
+    const lastIdx = PLAN_DATES.indexOf(lastEntry.date);
+    const firstIdx = PLAN_DATES.indexOf(logged[0].date);
+    const steps = lastIdx - firstIdx;
+
+    // recent pace: CAGR over the logged actuals; with only one data point, fall
+    // back to the pace that would be needed to hit target by MAX_DATE
+    let rActual;
+    if (steps > 0) {
+      rActual = Math.pow(lastEntry.actual / logged[0].actual, 1 / steps) - 1;
+    } else {
+      const remain = maxIdx - lastIdx;
+      rActual = remain > 0 ? Math.pow(TARGET / lastEntry.actual, 1 / remain) - 1 : 0;
+    }
+
+    let completionIdx = lastEntry.actual >= TARGET ? lastIdx : null;
+    if (completionIdx == null) {
+      for (let i = lastIdx + 1; i <= maxIdx; i++) {
+        if (lastEntry.actual * Math.pow(1 + rActual, i - lastIdx) >= TARGET) {
+          completionIdx = i;
+          break;
+        }
+      }
+    }
+
+    let rFinal = rActual;
+    let capped = false;
+    if (completionIdx == null) {
+      // current pace won't reach target by MAX_DATE — accelerate so it lands exactly there
+      const remain = maxIdx - lastIdx;
+      rFinal = remain > 0 ? Math.pow(TARGET / lastEntry.actual, 1 / remain) - 1 : 0;
+      completionIdx = maxIdx;
+      capped = true;
+    }
+
+    const points = [];
+    for (let i = 0; i <= maxIdx; i++) {
+      const d = PLAN_DATES[i];
+      let planVal;
+      if (i <= lastIdx) planVal = entries[d] ?? PLAN_VALS[i];
+      else if (i <= completionIdx) planVal = lastEntry.actual * Math.pow(1 + rFinal, i - lastIdx);
+      else planVal = TARGET;
+      points.push({ date: d, label: d.slice(2, 7), plan: planVal, actual: entries[d] ?? null });
+    }
+
+    return { points, completionDate: PLAN_DATES[completionIdx], capped };
+  }, [entries, logged, lastEntry, maxIdx]);
 
   // ---- actions ----
   const saveEntry = () => {
@@ -163,8 +360,16 @@ export default function BullRunTracker() {
             <div className="text-[11px] tracking-[0.25em] uppercase text-amber-400/80 font-mono">Risk ledger</div>
             <h1 className="text-2xl font-semibold text-slate-50">$65 → $1M · 18-month plan</h1>
           </div>
-          <div className="font-mono text-sm text-slate-400">
-            Day <span className="text-slate-100">{dayNum}</span> / {N} · Jul 13 ’26 → Jan 14 ’28
+          <div className="flex items-center gap-3">
+            <div className="font-mono text-sm text-slate-400">
+              Day <span className="text-slate-100">{dayNum}</span> / {N} · Jul 13 ’26 → Jan 13 ’28
+            </div>
+            <div className="flex items-center gap-2 font-mono text-xs text-slate-500">
+              <span>{username}</span>
+              <button onClick={onLogout} className="px-2 py-1 rounded border border-slate-700 hover:border-slate-500 text-slate-400">
+                Log out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -262,7 +467,7 @@ export default function BullRunTracker() {
         </div>
 
         {/* stat tiles */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
           <Tile label="Current balance" value={fmt(baseBalance)} tone="plain" />
           <Tile
             label="Last daily return"
@@ -279,12 +484,17 @@ export default function BullRunTracker() {
             value={(breaches > 0 ? breaches + "⚠" : "0") + " · " + (retDays ? Math.round((winDays / retDays) * 100) + "%" : "—")}
             tone={breaches > 0 ? "down" : "plain"}
           />
+          <Tile
+            label="Projected $1M"
+            value={adjusted.completionDate || "—"}
+            tone={adjusted.completionDate ? (adjusted.capped ? "down" : "up") : "plain"}
+          />
         </div>
 
-        {/* chart */}
+        {/* chart 1: the original, untouched plan */}
         <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4">
           <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono mb-3">
-            Plan (amber) vs your actuals (green)
+            Initial plan — Plan (amber) vs your actuals (green)
           </div>
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer>
@@ -301,6 +511,38 @@ export default function BullRunTracker() {
                 {lastEntry && <ReferenceLine x={lastEntry.date.slice(2, 7)} stroke="#334155" />}
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* chart 2: re-projected from today's pace, capped at MAX_DATE */}
+        <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+          <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono mb-3">
+            Adjusted roadmap — Adjusted plan (violet) vs your actuals (green)
+          </div>
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer>
+              <LineChart data={adjusted.points} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
+                <XAxis dataKey="label" tick={{ fill: "#64748b", fontSize: 11 }} interval={Math.floor(adjusted.points.length / 8)} tickLine={false} axisLine={{ stroke: "#1e293b" }} />
+                <YAxis tickFormatter={fmt} tick={{ fill: "#64748b", fontSize: 11 }} width={64} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, fontFamily: "monospace", fontSize: 12 }}
+                  labelFormatter={(l, p) => (p && p[0] ? p[0].payload.date : l)}
+                  formatter={(v, name) => [fmtFull(v), name === "plan" ? "Adjusted" : "Actual"]}
+                />
+                <Line type="monotone" dataKey="plan" stroke="#9085E9" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
+                <Line type="monotone" dataKey="actual" stroke="#2BB673" strokeWidth={2.5} dot={false} connectNulls />
+                {lastEntry && <ReferenceLine x={lastEntry.date.slice(2, 7)} stroke="#334155" />}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 text-xs text-slate-500">
+            {adjusted.completionDate == null
+              ? "Log a balance to generate your adjusted roadmap."
+              : adjusted.capped
+              ? "Current pace is behind the original plan — the remaining days are compressed so you still hit $1M by " + adjusted.completionDate + "."
+              : adjusted.completionDate < MAX_DATE
+              ? "Ahead of pace — on track to hit $1M by " + adjusted.completionDate + ", sooner than the max threshold of Jan 13, 2028."
+              : "On track to hit $1M by " + adjusted.completionDate + "."}
           </div>
         </div>
 
@@ -373,3 +615,5 @@ function Tile({ label, value, tone }) {
     </div>
   );
 }
+
+export default AuthGate;

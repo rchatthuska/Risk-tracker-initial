@@ -181,6 +181,7 @@ function Tracker({ username, onLogout }) {
 
   const lastEntry = logged.length ? logged[logged.length - 1] : null;
   const prevEntry = logged.length > 1 ? logged[logged.length - 2] : null;
+  const planToday = lastEntry ? lastEntry.planned : PLAN_VALS[0];
 
   // next untracked plan day (first date with no entry after the last logged one)
   const nextDay = useMemo(() => {
@@ -195,8 +196,6 @@ function Tracker({ username, onLogout }) {
 
   // ---- risk math ----
   const baseBalance = lastEntry ? lastEntry.actual : 65;
-  const maxLossAllowed = baseBalance * (maxLossPct / 100);
-  const floorBalance = baseBalance - maxLossAllowed;
 
   const rows = useMemo(() => {
     return logged.map((r, i) => {
@@ -280,6 +279,31 @@ function Tracker({ username, onLogout }) {
     return { points, completionDate: PLAN_DATES[completionIdx], capped };
   }, [entries, logged, lastEntry, maxIdx]);
 
+  // ---- tomorrow's risk floor ----
+  // ahead of the original plan: the floor tightens to whichever of three lines is
+  // highest — the plain 5% stop, yesterday's close, or tomorrow's adjusted target —
+  // so a hot streak locks in more of the gain instead of giving back a flat 5%.
+  const pctFloor = baseBalance * (1 - maxLossPct / 100);
+  const aheadOfPlan = lastEntry != null && lastEntry.actual > planToday;
+  const lastIdx = lastEntry ? PLAN_DATES.indexOf(lastEntry.date) : -1;
+  const nextDayProjected = lastEntry && lastIdx + 1 < adjusted.points.length ? adjusted.points[lastIdx + 1].plan : null;
+
+  let floorBalance = pctFloor;
+  let floorSource = "5% stop";
+  if (aheadOfPlan) {
+    const candidates = [
+      { value: pctFloor, source: "5% stop" },
+      ...(prevEntry ? [{ value: prevEntry.actual, source: "previous day’s balance" }] : []),
+      ...(nextDayProjected != null ? [{ value: nextDayProjected, source: "tomorrow’s adjusted target" }] : []),
+    ];
+    const tightest = candidates.reduce((a, b) => (b.value > a.value ? b : a));
+    // a floor can never sit at or above today's balance — that would flag any
+    // move at all as a breach, so clamp it just under the current balance
+    floorBalance = Math.min(tightest.value, baseBalance * 0.999);
+    floorSource = tightest.source;
+  }
+  const maxLossAllowed = baseBalance - floorBalance;
+
   // ---- roadmap table: initial plan vs adjusted plan vs actual, one row per day ----
   const roadmapRows = useMemo(() => {
     return adjusted.points.map((p, i) => ({
@@ -350,7 +374,6 @@ function Tracker({ username, onLogout }) {
   const todayEntered = dateInput && entries[dateInput] != null ? entries[dateInput] : null;
 
   const dayNum = lastEntry ? lastEntry.day : 0;
-  const planToday = lastEntry ? lastEntry.planned : PLAN_VALS[0];
 
   if (!loaded)
     return (
@@ -470,7 +493,9 @@ function Tracker({ username, onLogout }) {
             <div className="text-right text-amber-300">balance {fmtFull(baseBalance)}</div>
           </div>
           <div className="mt-2 text-xs text-slate-500">
-            If tomorrow’s balance closes under the floor, the day is flagged as a discipline breach.
+            {aheadOfPlan
+              ? "Ahead of the original plan — floor tightened to the strictest of the 5% stop, previous day’s balance, and tomorrow’s adjusted target: " + floorSource + "."
+              : "If tomorrow’s balance closes under the floor, the day is flagged as a discipline breach."}
           </div>
         </div>
 

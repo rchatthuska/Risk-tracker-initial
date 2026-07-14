@@ -15,6 +15,48 @@ const fmt = (v) =>
 const fmtFull = (v) => (v == null ? "—" : "$" + Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
 const pct = (v, d = 2) => (v == null ? "—" : (v >= 0 ? "+" : "") + (v * 100).toFixed(d) + "%");
 
+// Projects a target day's balance from a logged pace: CAGR through the given
+// history, accelerating only if needed so the curve still reaches TARGET by maxIdx.
+// Same math the adjusted roadmap uses for future days — reused here to answer
+// "what did the pace through yesterday project for today?"
+function projectFromPace(loggedSubset, targetIdx, maxIdx) {
+  if (!loggedSubset.length) return PLAN_VALS[targetIdx];
+  const last = loggedSubset[loggedSubset.length - 1];
+  const first = loggedSubset[0];
+  const lastIdx = PLAN_DATES.indexOf(last.date);
+  const firstIdx = PLAN_DATES.indexOf(first.date);
+  const steps = lastIdx - firstIdx;
+
+  let rActual;
+  if (steps > 0) {
+    rActual = Math.pow(last.actual / first.actual, 1 / steps) - 1;
+  } else {
+    const remain = maxIdx - lastIdx;
+    rActual = remain > 0 ? Math.pow(TARGET / last.actual, 1 / remain) - 1 : 0;
+  }
+
+  let completionIdx = last.actual >= TARGET ? lastIdx : null;
+  if (completionIdx == null) {
+    for (let i = lastIdx + 1; i <= maxIdx; i++) {
+      if (last.actual * Math.pow(1 + rActual, i - lastIdx) >= TARGET) {
+        completionIdx = i;
+        break;
+      }
+    }
+  }
+
+  let rFinal = rActual;
+  if (completionIdx == null) {
+    const remain = maxIdx - lastIdx;
+    rFinal = remain > 0 ? Math.pow(TARGET / last.actual, 1 / remain) - 1 : 0;
+    completionIdx = maxIdx;
+  }
+
+  if (targetIdx <= lastIdx) return last.actual;
+  if (targetIdx <= completionIdx) return last.actual * Math.pow(1 + rFinal, targetIdx - lastIdx);
+  return TARGET;
+}
+
 // Lightweight string hash for the local login gate — this app has no backend, so
 // it's just enough to keep separate savers' data apart on a shared browser, not real auth.
 const hashPW = (pw) => {
@@ -146,7 +188,7 @@ function Tracker({ username, onLogout }) {
   const [maxLossPct, setMaxLossPct] = useState(5);
   const [loaded, setLoaded] = useState(false);
   const [dateInput, setDateInput] = useState("");
-  const [balanceInput, setBalanceInput] = useState("");
+  const [parsedBalance, setParsedBalance] = useState(null); // balance read from the last uploaded screenshot, not yet saved
   const [saveMsg, setSaveMsg] = useState("");
   const [parsing, setParsing] = useState(false);
   const roadmapScrollRef = useRef(null);
@@ -290,6 +332,16 @@ function Tracker({ username, onLogout }) {
   const lastIdx = lastEntry ? PLAN_DATES.indexOf(lastEntry.date) : -1;
   const nextDayProjected = lastEntry && lastIdx + 1 < adjusted.points.length ? adjusted.points[lastIdx + 1].plan : null;
 
+  // ---- today's benchmarks ----
+  // what the adjusted roadmap would have projected for today, based on the pace
+  // through yesterday only — lets today's actual be judged against its own target
+  // instead of a target that already includes today's number.
+  const todayFloor = prevEntry ? prevEntry.actual * (1 - maxLossPct / 100) : null;
+  const adjustedTargetForToday = useMemo(() => {
+    if (!lastEntry) return null;
+    return projectFromPace(logged.slice(0, -1), lastIdx, maxIdx);
+  }, [logged, lastEntry, lastIdx, maxIdx]);
+
   let floorBalance = pctFloor;
   let floorSource = "5% stop";
   if (aheadOfPlan) {
@@ -326,13 +378,13 @@ function Tracker({ username, onLogout }) {
 
   // ---- actions ----
   const saveEntry = () => {
-    const b = parseFloat(balanceInput);
+    const b = parsedBalance;
     if (!dateInput || !PLAN_DATES.includes(dateInput)) {
       setSaveMsg("Pick a trading day from the plan (weekends and holidays are skipped).");
       return;
     }
-    if (isNaN(b) || b <= 0) {
-      setSaveMsg("Enter a balance greater than zero.");
+    if (b == null || isNaN(b) || b <= 0) {
+      setSaveMsg("Upload a balance screenshot first.");
       return;
     }
     const next = { ...entries, [dateInput]: b };
@@ -345,7 +397,7 @@ function Tracker({ username, onLogout }) {
     } else {
       setSaveMsg("Saved " + fmtFull(b) + " for " + dateInput + ".");
     }
-    setBalanceInput("");
+    setParsedBalance(null);
     setDateInput("");
   };
 
@@ -385,7 +437,7 @@ function Tracker({ username, onLogout }) {
       candidates.sort((a, b) => b.height - a.height);
       const best = candidates[0];
 
-      setBalanceInput(String(best.value));
+      setParsedBalance(best.value);
       setSaveMsg(
         "Read " + fmtFull(best.value) + " from the screenshot — double-check it, then click Save balance."
       );
@@ -460,10 +512,10 @@ function Tracker({ username, onLogout }) {
             <div className="flex-1 min-w-[220px]">
               <div className="text-sm text-amber-200/90 mb-2">
                 {nextDay
-                  ? "Update your balance — next unlogged trading day is " + nextDay + "."
+                  ? "Upload a balance screenshot — next unlogged trading day is " + nextDay + "."
                   : "Plan complete. All 382 days logged."}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="date"
                   value={dateInput}
@@ -473,22 +525,6 @@ function Tracker({ username, onLogout }) {
                   className="bg-slate-900 border border-slate-700 rounded px-3 py-2 font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-400"
                   aria-label="Trading day"
                 />
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="Closing balance ($)"
-                  value={balanceInput}
-                  onChange={(e) => setBalanceInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && saveEntry()}
-                  className="w-48 bg-slate-900 border border-slate-700 rounded px-3 py-2 font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-400"
-                  aria-label="Closing balance in dollars"
-                />
-                <button
-                  onClick={saveEntry}
-                  className="px-4 py-2 rounded bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                >
-                  Save balance
-                </button>
                 <input
                   ref={screenshotInputRef}
                   type="file"
@@ -502,6 +538,26 @@ function Tracker({ username, onLogout }) {
                   className="px-4 py-2 rounded border border-slate-700 text-slate-200 text-sm font-semibold hover:border-amber-400 disabled:opacity-50"
                 >
                   {parsing ? "Reading…" : "Upload balance screenshot"}
+                </button>
+                {parsedBalance != null && (
+                  <div className="flex items-center gap-2 bg-slate-900 border border-emerald-400/40 rounded px-3 py-2 font-mono text-sm text-emerald-300">
+                    {fmtFull(parsedBalance)}
+                    <button
+                      onClick={() => setParsedBalance(null)}
+                      className="text-slate-500 hover:text-red-400 leading-none"
+                      aria-label="Discard parsed balance"
+                      title="Discard and re-upload"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={saveEntry}
+                  disabled={parsedBalance == null}
+                  className="px-4 py-2 rounded bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-40"
+                >
+                  Save balance
                 </button>
               </div>
               {todayEntered != null && (
@@ -533,6 +589,27 @@ function Tracker({ username, onLogout }) {
               %
             </label>
           </div>
+
+          {lastEntry && prevEntry && (
+            <div
+              className={
+                "mt-3 rounded px-3 py-2 text-sm font-mono flex items-center gap-2 " +
+                (lastEntry.actual >= prevEntry.actual
+                  ? "bg-emerald-400/10 text-emerald-300"
+                  : "bg-red-500/10 text-red-400")
+              }
+            >
+              <span className="text-base">{lastEntry.actual >= prevEntry.actual ? "▲" : "▼"}</span>
+              <span>
+                {lastEntry.actual >= prevEntry.actual
+                  ? "Up " + fmtFull(lastEntry.actual - prevEntry.actual) +
+                    " (" + pct(lastEntry.actual / prevEntry.actual - 1, 1) + ") from yesterday — good job, keep it up!"
+                  : "Down " + fmtFull(prevEntry.actual - lastEntry.actual) +
+                    " (" + pct(lastEntry.actual / prevEntry.actual - 1, 1) + ") from yesterday — stay disciplined."}
+              </span>
+            </div>
+          )}
+
           <div className="mt-4 relative h-10 rounded bg-slate-950 border border-slate-800 overflow-hidden" role="img"
                aria-label={"Balance " + fmtFull(baseBalance) + ", floor " + fmtFull(floorBalance)}>
             {/* danger zone below floor is off-scale left; shade the first 8% as the cliff edge */}
@@ -560,6 +637,51 @@ function Tracker({ username, onLogout }) {
             {aheadOfPlan
               ? "Ahead of the original plan — floor tightened to the strictest of the 5% stop, previous day’s balance, and tomorrow’s adjusted target: " + floorSource + "."
               : "If tomorrow’s balance closes under the floor, the day is flagged as a discipline breach."}
+          </div>
+
+          {/* today's benchmarks — how the current balance stacks up against every reference line */}
+          <div className="mt-4">
+            <div className="text-[11px] tracking-[0.2em] uppercase text-slate-400 font-mono mb-2">
+              Today vs. your benchmarks
+            </div>
+            {lastEntry ? (
+              <div className="rounded border border-slate-800 overflow-hidden">
+                <CompareRow
+                  label="Previous day’s balance"
+                  reference={prevEntry ? prevEntry.actual : null}
+                  current={baseBalance}
+                  goodMessage="Good job, keep it up!"
+                  badMessage="Below yesterday’s close — stay disciplined."
+                  naMessage="First logged day — no prior balance yet."
+                />
+                <CompareRow
+                  label={maxLossPct + "% floor (prev day)"}
+                  reference={todayFloor}
+                  current={baseBalance}
+                  goodMessage="Within your max-loss floor."
+                  badMessage="Breached your max-loss floor — discipline broken."
+                  naMessage="No prior balance to floor against yet."
+                />
+                <CompareRow
+                  label="Initial projected amount"
+                  reference={planToday}
+                  current={baseBalance}
+                  goodMessage="Ahead of the original plan."
+                  badMessage="Behind the original plan."
+                  naMessage="—"
+                />
+                <CompareRow
+                  label="Initial adjusted plan"
+                  reference={adjustedTargetForToday}
+                  current={baseBalance}
+                  goodMessage="Beating your recent pace."
+                  badMessage="Falling behind your recent pace."
+                  naMessage="—"
+                />
+              </div>
+            ) : (
+              <div className="text-sm text-slate-400">Upload your first balance to see benchmark comparisons.</div>
+            )}
           </div>
         </div>
 
@@ -660,7 +782,7 @@ function Tracker({ username, onLogout }) {
           </div>
           {rows.length === 0 ? (
             <div className="p-6 text-sm text-slate-400">
-              No days logged yet. Enter your Day 1 balance above — the plan starts at $65 on 2026-07-13.
+              No days logged yet. Upload your Day 1 balance screenshot above — the plan starts at $65 on 2026-07-13.
             </div>
           ) : (
             <div className="max-h-72 overflow-y-auto">
@@ -709,6 +831,31 @@ function Tile({ label, value, tone }) {
     <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
       <div className="text-[10px] tracking-[0.15em] uppercase text-slate-500 font-mono">{label}</div>
       <div className={"mt-1 font-mono text-lg " + color}>{value}</div>
+    </div>
+  );
+}
+
+function CompareRow({ label, reference, current, goodMessage, badMessage, naMessage }) {
+  if (reference == null) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-slate-800/60 text-xs font-mono first:border-t-0">
+        <span className="text-slate-500">{label}</span>
+        <span className="text-slate-600">{naMessage}</span>
+      </div>
+    );
+  }
+  const diff = current - reference;
+  const up = diff >= 0;
+  const diffPct = reference !== 0 ? diff / reference : 0;
+  const color = up ? "text-emerald-400" : "text-red-400";
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-slate-800/60 text-xs font-mono first:border-t-0">
+      <span className="text-slate-400">{label}</span>
+      <span className="text-slate-300">{fmtFull(reference)}</span>
+      <span className={color}>
+        {up ? "▲" : "▼"} {fmtFull(Math.abs(diff))} ({pct(diffPct, 1)})
+      </span>
+      <span className={color}>{up ? goodMessage : badMessage}</span>
     </div>
   );
 }

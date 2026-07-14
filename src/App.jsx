@@ -148,7 +148,9 @@ function Tracker({ username, onLogout }) {
   const [dateInput, setDateInput] = useState("");
   const [balanceInput, setBalanceInput] = useState("");
   const [saveMsg, setSaveMsg] = useState("");
+  const [parsing, setParsing] = useState(false);
   const roadmapScrollRef = useRef(null);
+  const screenshotInputRef = useRef(null);
 
   // ---- load persisted state ----
   useEffect(() => {
@@ -347,6 +349,54 @@ function Tracker({ username, onLogout }) {
     setDateInput("");
   };
 
+  const handleScreenshot = async (file) => {
+    if (!file) return;
+    setParsing(true);
+    setSaveMsg("Reading screenshot…");
+    try {
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng");
+      const { data } = await worker.recognize(file, {}, { blocks: true });
+      await worker.terminate();
+
+      const words = [];
+      for (const block of data.blocks || []) {
+        for (const para of block.paragraphs || []) {
+          for (const line of para.lines || []) {
+            for (const word of line.words || []) words.push(word);
+          }
+        }
+      }
+
+      // Robinhood shows the total balance in the largest font on the page, so
+      // among every dollar-shaped word Tesseract found, the tallest bounding
+      // box is the best guess — bigger font beats "first match" or "biggest number".
+      const candidates = [];
+      for (const word of words) {
+        const cleaned = word.text.replace(/[^\d.,$]/g, "");
+        const match = cleaned.match(/\$?\d[\d,]*\.\d{2}/);
+        if (!match) continue;
+        const value = parseFloat(match[0].replace(/[$,]/g, ""));
+        if (!isNaN(value) && value > 0) {
+          candidates.push({ value, height: word.bbox.y1 - word.bbox.y0 });
+        }
+      }
+      if (!candidates.length) throw new Error("Couldn't find a dollar amount in that screenshot.");
+      candidates.sort((a, b) => b.height - a.height);
+      const best = candidates[0];
+
+      setBalanceInput(String(best.value));
+      setSaveMsg(
+        "Read " + fmtFull(best.value) + " from the screenshot — double-check it, then click Save balance."
+      );
+    } catch (e) {
+      setSaveMsg(e.message || "Could not read that screenshot.");
+    } finally {
+      setParsing(false);
+      if (screenshotInputRef.current) screenshotInputRef.current.value = "";
+    }
+  };
+
   const removeLast = () => {
     if (!lastEntry) return;
     const next = { ...entries };
@@ -438,6 +488,20 @@ function Tracker({ username, onLogout }) {
                   className="px-4 py-2 rounded bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
                 >
                   Save balance
+                </button>
+                <input
+                  ref={screenshotInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleScreenshot(e.target.files?.[0])}
+                />
+                <button
+                  onClick={() => screenshotInputRef.current?.click()}
+                  disabled={parsing}
+                  className="px-4 py-2 rounded border border-slate-700 text-slate-200 text-sm font-semibold hover:border-amber-400 disabled:opacity-50"
+                >
+                  {parsing ? "Reading…" : "Upload balance screenshot"}
                 </button>
               </div>
               {todayEntered != null && (
